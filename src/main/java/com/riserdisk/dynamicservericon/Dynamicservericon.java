@@ -5,7 +5,7 @@ import com.riserdisk.dynamicservericon.icons.IconCache;
 import com.riserdisk.dynamicservericon.icons.IconLoader;
 import com.riserdisk.dynamicservericon.icons.IconManager;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +43,6 @@ public class Dynamicservericon implements ModInitializer {
 
         LOGGER.info("DynamicServerIcon loaded successfully.");
 
-    }
-
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 
 }
