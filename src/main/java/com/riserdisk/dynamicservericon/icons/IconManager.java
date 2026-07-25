@@ -2,6 +2,8 @@ package com.riserdisk.dynamicservericon.icons;
 
 import com.riserdisk.dynamicservericon.Dynamicservericon;
 
+import net.minecraft.server.ServerMetadata;
+
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

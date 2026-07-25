@@ -2,11 +2,13 @@ package com.riserdisk.dynamicservericon.icons;
 
 import com.riserdisk.dynamicservericon.Dynamicservericon;
 
+import net.minecraft.server.ServerMetadata;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.Optional;
 
 public class IconLoader {
@@ -38,15 +40,30 @@ public class IconLoader {
 
         }
 
-        // Temporal.
-        // Más adelante reemplazaremos esto por la conversión real.
-        String encoded = Base64.getEncoder().encodeToString(new byte[0]);
+        Optional<ServerMetadata.Favicon> favicon;
+
+        try {
+
+            byte[] pngBytes = Files.readAllBytes(path);
+
+            favicon = Optional.of(new ServerMetadata.Favicon(pngBytes));
+
+        } catch (IOException e) {
+
+            Dynamicservericon.LOGGER.warn(
+                    "Failed to load favicon bytes: {}",
+                    path.getFileName()
+            );
+
+            return Optional.empty();
+
+        }
 
         ServerIcon icon = new ServerIcon(
                 path.getFileName().toString(),
                 path,
                 image,
-                encoded
+                favicon
         );
 
         Dynamicservericon.LOGGER.info("Loaded icon '{}'.", icon.getName());

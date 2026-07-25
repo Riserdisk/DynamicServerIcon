@@ -1,20 +1,28 @@
 package com.riserdisk.dynamicservericon.icons;
 
+import net.minecraft.server.ServerMetadata;
+
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public final class ServerIcon {
 
     private final String name;
     private final Path path;
     private final BufferedImage image;
-    private final String encodedIcon;
+    private final Optional<ServerMetadata.Favicon> favicon;
 
-    public ServerIcon(String name, Path path, BufferedImage image, String encodedIcon) {
+    public ServerIcon(
+            String name,
+            Path path,
+            BufferedImage image,
+            Optional<ServerMetadata.Favicon> favicon) {
+
         this.name = name;
         this.path = path;
         this.image = image;
-        this.encodedIcon = encodedIcon;
+        this.favicon = favicon;
     }
 
     public String getName() {
@@ -29,7 +37,8 @@ public final class ServerIcon {
         return image;
     }
 
-    public String getEncodedIcon() {
-        return encodedIcon;
+    public Optional<ServerMetadata.Favicon> getFavicon() {
+        return favicon;
     }
+
 }
