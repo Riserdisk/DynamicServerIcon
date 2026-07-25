@@ -80,6 +80,31 @@ public class ConfigManager {
 
     }
 
+    public void save() {
+
+        try {
+
+            saveConfig();
+
+        } catch (IOException e) {
+
+            Dynamicservericon.LOGGER.error(
+                    "Failed to save configuration.",
+                    e
+            );
+
+        }
+
+    }
+
+    public void setRotationInterval(int seconds) {
+
+        config.getRotation().setInterval(seconds);
+
+        save();
+
+    }
+
     private ModConfig loadConfig() throws IOException {
 
     if (Files.notExists(configFile)) {

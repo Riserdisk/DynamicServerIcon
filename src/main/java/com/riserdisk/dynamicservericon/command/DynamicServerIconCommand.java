@@ -1,6 +1,7 @@
 package com.riserdisk.dynamicservericon.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.riserdisk.dynamicservericon.Dynamicservericon;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -51,6 +52,47 @@ public final class DynamicServerIconCommand {
 
                         )
 
+                        .then(
+
+                                CommandManager.literal("interval")
+
+                                        .then(
+
+                                                CommandManager.argument(
+                                                        "seconds",
+                                                        IntegerArgumentType.integer(1)
+                                                )
+
+                                                        .executes(context -> {
+
+                                                            int seconds = IntegerArgumentType.getInteger(
+                                                                    context,
+                                                                    "seconds"
+                                                            );
+
+                                                            Dynamicservericon.CONFIG_MANAGER
+                                                                    .setRotationInterval(seconds);
+
+                                                            Dynamicservericon.ICON_MANAGER
+                                                                    .setRotationInterval(seconds);
+
+                                                            context.getSource().sendFeedback(
+                                                                    () -> Text.literal(
+                                                                            "Rotation interval changed to "
+                                                                                    + seconds
+                                                                                    + " second(s)."
+                                                                    ),
+                                                                    true
+                                                            );
+
+                                                            return 1;
+
+                                                        })
+
+                                        )
+
+                        )
+
         );
 
     }
@@ -59,7 +101,7 @@ public final class DynamicServerIconCommand {
 
         source.sendFeedback(
                 () -> Text.literal("""
-                        
+
                         DynamicServerIcon
 
                         Available commands:
