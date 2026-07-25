@@ -2,8 +2,6 @@ package com.riserdisk.dynamicservericon.icons;
 
 import com.riserdisk.dynamicservericon.Dynamicservericon;
 
-import net.minecraft.server.ServerMetadata;
-
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -11,27 +9,27 @@ import java.util.concurrent.TimeUnit;
 
 public class IconManager {
 
-    // Durante el desarrollo usaremos 10 segundos.
-    // Más adelante esto saldrá del config.json.
-    private static final int ROTATION_INTERVAL_SECONDS = 10;
-
     private final IconCache iconCache;
     private final IconSelector iconSelector;
 
-    private final ScheduledExecutorService scheduler =
-        Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread thread = new Thread(r);
-            thread.setName("DynamicServerIcon Scheduler");
-            thread.setDaemon(true);
-            return thread;
-        });
+    private ScheduledExecutorService scheduler;
+
+    /**
+     * Rotation interval in seconds.
+     * Loaded from config.json.
+     */
+    private volatile int rotationIntervalSeconds;
 
     private volatile ServerIcon currentIcon;
 
-    public IconManager(IconCache iconCache) {
+    public IconManager(
+            IconCache iconCache,
+            int rotationIntervalSeconds
+    ) {
 
         this.iconCache = iconCache;
         this.iconSelector = new IconSelector(iconCache);
+        this.rotationIntervalSeconds = rotationIntervalSeconds;
 
     }
 
@@ -40,24 +38,99 @@ public class IconManager {
         if (iconCache.isEmpty()) {
 
             Dynamicservericon.LOGGER.warn("No icons available.");
-
             return;
 
         }
 
         rotateIcon();
 
-        scheduler.scheduleAtFixedRate(
-                this::rotateIcon,
-                ROTATION_INTERVAL_SECONDS,
-                ROTATION_INTERVAL_SECONDS,
-                TimeUnit.SECONDS
-        );
+        restartScheduler();
 
         Dynamicservericon.LOGGER.info(
                 "Icon rotation started ({} seconds).",
-                ROTATION_INTERVAL_SECONDS
+                rotationIntervalSeconds
         );
+
+    }
+
+    /**
+     * Changes the rotation interval.
+     * If the scheduler is already running,
+     * it is automatically restarted.
+     */
+    public void setRotationInterval(int seconds) {
+
+        if (seconds <= 0) {
+            throw new IllegalArgumentException(
+                    "Rotation interval must be greater than zero."
+            );
+        }
+
+        if (rotationIntervalSeconds == seconds) {
+            return;
+        }
+
+        rotationIntervalSeconds = seconds;
+
+        Dynamicservericon.LOGGER.info(
+                "Rotation interval changed to {} seconds.",
+                rotationIntervalSeconds
+        );
+
+        if (scheduler != null) {
+            restartScheduler();
+        }
+
+    }
+
+    /**
+     * Stops the current scheduler and creates a new one.
+     */
+    private void restartScheduler() {
+
+        shutdownScheduler();
+
+        scheduler = createScheduler();
+
+        scheduler.scheduleAtFixedRate(
+                this::rotateIcon,
+                rotationIntervalSeconds,
+                rotationIntervalSeconds,
+                TimeUnit.SECONDS
+        );
+
+    }
+
+    private ScheduledExecutorService createScheduler() {
+
+        return Executors.newSingleThreadScheduledExecutor(r -> {
+
+            Thread thread = new Thread(r);
+
+            thread.setName("DynamicServerIcon Scheduler");
+            thread.setDaemon(true);
+
+            return thread;
+
+        });
+
+    }
+
+    private void shutdownScheduler() {
+
+        if (scheduler != null) {
+
+            scheduler.shutdownNow();
+
+            scheduler = null;
+
+        }
+
+    }
+
+    public void shutdown() {
+
+        shutdownScheduler();
 
     }
 
@@ -81,6 +154,12 @@ public class IconManager {
     public ServerIcon getCurrentIcon() {
 
         return currentIcon;
+
+    }
+
+    public int getRotationIntervalSeconds() {
+
+        return rotationIntervalSeconds;
 
     }
 
