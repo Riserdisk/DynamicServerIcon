@@ -24,6 +24,11 @@ public class Dynamicservericon implements ModInitializer {
     public static IconManager ICON_MANAGER;
 
     /**
+     * Global access to the icon cache.
+     */
+    public static IconCache ICON_CACHE;
+
+    /**
      * Global access to the configuration.
      */
     public static ConfigManager CONFIG_MANAGER;
@@ -43,14 +48,14 @@ public class Dynamicservericon implements ModInitializer {
         }
 
         IconLoader iconLoader = new IconLoader();
-        IconCache iconCache = new IconCache(iconLoader);
 
-        iconCache.load(CONFIG_MANAGER.getIconsDirectory());
+        ICON_CACHE = new IconCache(iconLoader);
+        ICON_CACHE.load(CONFIG_MANAGER.getIconsDirectory());
 
         ModConfig config = CONFIG_MANAGER.getConfig();
 
         ICON_MANAGER = new IconManager(
-                iconCache,
+                ICON_CACHE,
                 config.getRotation().getInterval()
         );
 
@@ -73,17 +78,21 @@ public class Dynamicservericon implements ModInitializer {
      */
     public static void reloadConfiguration() {
 
-        if (CONFIG_MANAGER == null || ICON_MANAGER == null) {
+        if (CONFIG_MANAGER == null || ICON_MANAGER == null || ICON_CACHE == null) {
             return;
         }
 
         ModConfig config = CONFIG_MANAGER.reload();
 
+        // Reload every icon from disk.
+        ICON_CACHE.load(CONFIG_MANAGER.getIconsDirectory());
+
+        // Apply the new interval.
         ICON_MANAGER.setRotationInterval(
                 config.getRotation().getInterval()
         );
 
-        LOGGER.info("Configuration reloaded.");
+        LOGGER.info("Configuration and icons reloaded.");
 
     }
 
